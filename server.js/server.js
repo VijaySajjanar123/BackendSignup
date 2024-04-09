@@ -4,17 +4,10 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const app = express();
 
-// Connect to MongoDB with increased timeout
-mongoose.connect('mongodb://localhost:27017/contacts', { 
-  useNewUrlParser: true, 
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000, // Timeout for server selection
-  socketTimeoutMS: 45000 // Timeout for operations
-})
-.then(() => {
-  console.log('Connected to MongoDB');
-})
-.catch(error => console.error('MongoDB connection error:', error));
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/contacts', { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(error => console.error('MongoDB connection error:', error));
 
 // Define Contact schema
 const contactSchema = new mongoose.Schema({
@@ -31,10 +24,48 @@ function generateToken(username) {
   return jwt.sign({ username }, 'your_secret_key', { expiresIn: '1h' }); // Token expires in 1 hour
 }
 
-// Get Contacts route
+// Define routes
+
+// Save Contact route (POST request)
+app.post('/api/contacts', async (req, res) => {
+  const { name, mobile, email } = req.body;
+  const errors = {};
+
+  // Validate each field
+  if (!name) {
+    errors.name = 'Name is required';
+  }
+  if (!mobile) {
+    errors.mobile = 'Mobile number is required';
+  }
+  if (!email) {
+    errors.email = 'Email is required';
+  }
+
+  // If there are errors, return them
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json({ success: false, errors });
+  }
+
+  try {
+    const contact = new Contact({ name, mobile, email });
+    await contact.save();
+
+    // Generate JWT token
+    const token = generateToken(name);
+
+    // Send success message with token
+    return res.status(201).json({ success: true, data: { name, mobile, email }, message: 'login successfully', token });
+  } catch (error) {
+    console.error('Error saving contact:', error);
+    return res.status(500).json({ success: false, error: 'Something went wrong' });
+  }
+});
+
+// Get Contacts route (GET request)
 app.get('/api/contacts', async (req, res) => {
   try {
-    const contacts = await Contact.find().lean(); // Retrieve all contacts from the database
+    const contacts = await Contact.find(); // Retrieve all contacts from the database
     if (contacts.length === 0) {
       return res.status(404).json({ success: false, message: 'No contacts found' });
     } else {
@@ -42,16 +73,16 @@ app.get('/api/contacts', async (req, res) => {
     }
   } catch (error) {
     console.error('Error retrieving contacts:', error);
-    return res.status(500).json({ success: false, error: 'Something went wrong', details: error.message });
+    return res.status(500).json({ success: false, error: 'Something went wrong' });
   }
-});
-
-// Save Contact route - Placeholder for future implementation
-app.post('/api/contacts', async (req, res) => {
-  return res.status(501).json({ success: false, error: 'Not Implemented' });
 });
 
 const PORT = process.env.PORT || 6000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+
+
+
+
