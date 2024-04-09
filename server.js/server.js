@@ -4,13 +4,17 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const app = express();
 
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/contacts', { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => {
-    console.log('Connected to MongoDB');
-    console.log(process.env.MONGODB_URI); // Logging MongoDB URI
-  })
-  .catch(error => console.error('MongoDB connection error:', error));
+// Connect to MongoDB with increased timeout
+mongoose.connect('mongodb://localhost:27017/contacts', { 
+  useNewUrlParser: true, 
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000, // Timeout for server selection
+  socketTimeoutMS: 45000 // Timeout for operations
+})
+.then(() => {
+  console.log('Connected to MongoDB');
+})
+.catch(error => console.error('MongoDB connection error:', error));
 
 // Define Contact schema
 const contactSchema = new mongoose.Schema({
@@ -30,7 +34,7 @@ function generateToken(username) {
 // Get Contacts route
 app.get('/api/contacts', async (req, res) => {
   try {
-    const contacts = await Contact.find(); // Retrieve all contacts from the database
+    const contacts = await Contact.find().lean(); // Retrieve all contacts from the database
     if (contacts.length === 0) {
       return res.status(404).json({ success: false, message: 'No contacts found' });
     } else {
