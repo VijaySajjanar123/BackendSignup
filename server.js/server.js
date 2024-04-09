@@ -24,22 +24,40 @@ function generateToken(username) {
   return jwt.sign({ username }, 'your_secret_key', { expiresIn: '1h' }); // Token expires in 1 hour
 }
 
+// Define routes
+
 // Save Contact route
 app.post('/api/contacts', async (req, res) => {
-  // Code for saving contacts...
-});
+  const { name, mobile, email } = req.body;
+  const errors = {};
 
-// Get Contacts route
-app.get('/api/contacts', async (req, res) => {
+  // Validate each field
+  if (!name) {
+    errors.name = 'Name is required';
+  }
+  if (!mobile) {
+    errors.mobile = 'Mobile number is required';
+  }
+  if (!email) {
+    errors.email = 'Email is required';
+  }
+
+  // If there are errors, return them
+  if (Object.keys(errors).length > 0) {
+    return res.status(400).json({ success: false, errors });
+  }
+
   try {
-    const contacts = await Contact.find(); // Retrieve all contacts from the database
-    if (contacts.length === 0) {
-      return res.status(404).json({ success: false, message: 'No contacts found' });
-    } else {
-      return res.status(200).json({ success: true, message: 'Contacts retrieved successfully', data: contacts });
-    }
+    const contact = new Contact({ name, mobile, email });
+    await contact.save();
+
+    // Generate JWT token
+    const token = generateToken(name);
+
+    // Send success message with token
+    return res.status(201).json({ success: true, data: { name, mobile, email }, message: 'login successfully', token });
   } catch (error) {
-    console.error('Error retrieving contacts:', error);
+    console.error('Error saving contact:', error);
     return res.status(500).json({ success: false, error: 'Something went wrong' });
   }
 });
