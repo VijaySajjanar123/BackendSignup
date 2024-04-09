@@ -24,8 +24,6 @@ function generateToken(username) {
   return jwt.sign({ username }, 'your_secret_key', { expiresIn: '1h' }); // Token expires in 1 hour
 }
 
-// Define routes
-
 // Save Contact route
 app.post('/api/contacts', async (req, res) => {
   const { name, mobile, email } = req.body;
@@ -55,9 +53,20 @@ app.post('/api/contacts', async (req, res) => {
     const token = generateToken(name);
 
     // Send success message with token
-    return res.status(201).json({ success: true, data: { name, mobile, email }, message: 'login successfully', token });
+    return res.status(201).json({ success: true, data: { name, mobile, email }, message: 'Contact saved successfully', token });
   } catch (error) {
     console.error('Error saving contact:', error);
+    return res.status(500).json({ success: false, error: 'Something went wrong' });
+  }
+});
+
+// Get Contacts route
+app.get('/api/contacts', async (req, res) => {
+  try {
+    const contacts = await Contact.find(); // Retrieve all contacts from the database
+    return res.status(200).json({ success: true, data: contacts });
+  } catch (error) {
+    console.error('Error retrieving contacts:', error);
     return res.status(500).json({ success: false, error: 'Something went wrong' });
   }
 });
