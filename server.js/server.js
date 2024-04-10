@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const app = express();
 
 // Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/contacts', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect('mongodb+srv://Vijay:vijay%40123@cluster0.uhpu6ez.mongodb.net/', { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connected to MongoDB'))
   .catch(error => console.error('MongoDB connection error:', error));
 
