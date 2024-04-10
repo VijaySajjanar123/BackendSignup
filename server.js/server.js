@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require('express');// login signup dashboard popular destinations api
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
@@ -129,7 +129,7 @@ app.post('/api/dashboard', (req, res) => {
 const popularDestinations = [
   {
     name: 'Goa, India',
-    image: 'goa.jpg',
+    image: 'Goa.jpg',
     price: '₹4,800',
     starRating: '4.8',
     description: 'Experience the pristine beaches and vibrant culture of Goa!'
