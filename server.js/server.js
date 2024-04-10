@@ -1,4 +1,4 @@
-const express = require('express');//sign up and login
+const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
@@ -55,19 +55,14 @@ app.post('/api/contacts', async (req, res) => {
     return res.status(500).json({ success: false, error: 'Something went wrong' });
   }
 });
+
 // Login route
 app.post('/api/login', async (req, res) => {
-  const { name, mobile, email } = req.body;
+  const { mobile } = req.body;
   const errors = {};
-  // Validate each field
-  if (!name) {
-    errors.name = 'Name is required';
-  }
+  // Validate mobile field
   if (!mobile) {
     errors.mobile = 'Mobile number is required';
-  }
-  if (!email) {
-    errors.email = 'Email is required';
   }
   // If there are errors, return them
   if (Object.keys(errors).length > 0) {
@@ -75,22 +70,100 @@ app.post('/api/login', async (req, res) => {
   }
   try {
     // Find user in the database
-    const user = await Contact.findOne({ name, mobile, email });
+    const user = await Contact.findOne({ mobile });
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
     // Generate JWT token
-    const token = generateToken(name);
+    const token = generateToken(mobile); // Using mobile number for token generation
     // Send success message with token
-    return res.status(200).json({ success: true, data: { name, mobile, email }, message: 'Login successful', token });
+    return res.status(200).json({ success: true, data: { mobile }, message: 'Login successful', token });
   } catch (error) {
     console.error('Error during login:', error);
     return res.status(500).json({ success: false, error: 'Something went wrong' });
   }
 });
+
+// Dashboard route
+app.post('/api/dashboard', (req, res) => {
+  const { from, to } = req.body;
+
+  // Perform search for packages based on the provided parameters
+  // For demonstration purposes, let's assume we have some sample packages
+  const packages = [
+    { 
+      destination: 'Goa', 
+      from: 'Mumbai', 
+      image: 'goa1.jpg', 
+      title: 'Package 1', 
+      description: '(3N/4D)',
+      price: '₹7,500',
+      points: [
+        'Luxurious accommodation',
+        'Complimentary breakfast',
+        'Guided tours to famous landmarks',
+        'Exciting water sports activities',
+        'Evening entertainment events'
+      ],
+      priceComparison: 'This price is lower than the average price in April.',
+      totalPrice: '₹7,500',
+      perPersonPrice: '₹3,750',
+      discountOffer: 'Extra Rs 5,898 off. Use Code CAPITALHUB'
+    },
+    // Add more packages as needed
+  ];
+
+  // Filter packages based on provided parameters
+  const filteredPackages = packages.filter(package => package.destination === to && package.from === from);
+
+  // If there are no packages found, return a message
+  if (filteredPackages.length === 0) {
+    return res.status(404).json({ success: false, message: 'No packages found for the given parameters' });
+  }
+
+  // Return the filtered packages as a response
+  return res.status(200).json({ success: true, data: filteredPackages, message: 'Received package information successfully' });
+});
+
+// Define popular destinations data
+const popularDestinations = [
+  {
+    name: 'Goa, India',
+    image: 'goa.jpg',
+    price: '₹4,800',
+    starRating: '4.8',
+    description: 'Experience the pristine beaches and vibrant culture of Goa!'
+  },
+  {
+    name: 'Great Wall of China',
+    image: 'great_wall.jpg',
+    price: 'Starting from ₹5,500',
+    starRating: '5.0',
+    description: 'Discover one of the most iconic wonders of the world, the Great Wall of China!'
+  },
+  {
+    name: 'Manali, India',
+    image: 'manali.jpg',
+    price: 'Starting from ₹6,000',
+    starRating: '4.5',
+    description: 'Escape to the serene beauty of Manali, nestled in the Himalayas!'
+  }
+];
+
+
+
+// Popular destinations route
+app.get('/api/popular-destinations', (req, res) => {
+  try {
+    return res.status(200).json({ success: true, data: popularDestinations, message: 'Popular destinations retrieved successfully' });
+  } catch (error) {
+    console.error('Error retrieving popular destinations:', error);
+    return res.status(500).json({ success: false, error: 'Something went wrong' });
+  }
+});
+
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
 
