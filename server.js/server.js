@@ -1,4 +1,4 @@
-const express = require('express');// login signup dashboard popular destinations api
+const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
@@ -7,9 +7,7 @@ const app = express();
 // Connect to MongoDB
 mongoose.connect('mongodb+srv://Vijay:vijay%40123@cluster0.uhpu6ez.mongodb.net/travel', { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connected to MongoDB'))
- 
   .catch(error => console.error('MongoDB connection error:', error));
-  
 
 // Define Contact schema
 const contactSchema = new mongoose.Schema({
@@ -152,8 +150,6 @@ const popularDestinations = [
   }
 ];
 
-
-
 // Popular destinations route
 app.get('/api/popular-destinations', (req, res) => {
   try {
@@ -164,8 +160,19 @@ app.get('/api/popular-destinations', (req, res) => {
   }
 });
 
+// Get Contacts route
+app.get('/api/contacts', async (req, res) => {
+  try {
+    // Fetch all contacts from the database
+    const contacts = await Contact.find();
+    return res.status(200).json({ success: true, data: contacts, message: 'Contacts retrieved successfully' });
+  } catch (error) {
+    console.error('Error retrieving contacts:', error);
+    return res.status(500).json({ success: false, error: 'Something went wrong' });
+  }
+});
+
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
